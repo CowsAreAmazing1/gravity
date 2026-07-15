@@ -523,7 +523,7 @@ fn model(app: &App) -> Model {
 }
 
 fn update(_app: &App, model: &mut Model, _update: Update) {
-    model.system.update(model.ih.dt, 5, None, None);
+    model.system.update(model.ih.dt, 5, None, None, None);
 
     let masses = model.system.get_masses().to_vec();
     let ode_system = GravitationalODE::new(masses);

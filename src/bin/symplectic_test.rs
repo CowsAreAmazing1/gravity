@@ -451,14 +451,8 @@ fn model(app: &App) -> Model {
     }
 }
 
-fn update(app: &App, model: &mut Model, _update: Update) {
-    let window = app.main_window();
-    let queue = window.queue();
-    let device = window.device();
-
-    model
-        .system
-        .update(model.ih.dt, 5, Some(device), Some(queue));
+fn update(_app: &App, model: &mut Model, _update: Update) {
+    model.system.update(model.ih.dt, 5, None, None, None);
 
     let masses = model.system.get_masses().to_vec();
     let ode_system = GravitationalODE::new(masses);

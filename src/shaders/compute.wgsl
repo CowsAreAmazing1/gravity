@@ -16,6 +16,7 @@ struct Attractor {
 struct DispatchParams {
     offset: u32,
     dt: f32,
+    window: vec4<f32>,
 };
 @group(3) @binding(0) var<uniform> params: DispatchParams;
 
@@ -63,9 +64,26 @@ fn vv_step(pos: vec2<f32>, vel: vec2<f32>, dt: f32) -> Particle {
     // let new_pos = pos + new_vel * dt;
 
     let acc = calculate_acceleration(pos, 0u);
-    let new_pos = pos + vel * dt + acc * dt * dt * 0.5;
+    var new_pos = pos + vel * dt + acc * dt * dt * 0.5;
     let new_acc = calculate_acceleration(new_pos, 1u);
-    let new_vel = vel + (acc + new_acc) * dt * 0.5;
+    var new_vel = vel + (acc + new_acc) * dt * 0.5;
+
+    if new_pos.x < params.window.x {
+        new_pos.x = 2.0 * params.window.x - new_pos.x;
+        new_vel.x = -new_vel.x;
+    }
+    if new_pos.x > params.window.y {
+        new_pos.x = 2.0 * params.window.y - new_pos.x;
+        new_vel.x = -new_vel.x;
+    }
+    if new_pos.y < params.window.z {
+        new_pos.y = 2.0 * params.window.z - new_pos.y;
+        new_vel.y = -new_vel.y;
+    }
+    if new_pos.y > params.window.w {
+        new_pos.y = 2.0 * params.window.w - new_pos.y;
+        new_vel.y = -new_vel.y;
+    }
 
     var result: Particle;
     result.pos = new_pos;

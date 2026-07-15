@@ -80,6 +80,8 @@ impl Uniforms {
 struct DispatchParams {
     offset: u32,
     dt: f32,
+    _padding: [f32; 2],
+    window: [f32; 4], // [minx, maxx, miny, maxy]
 }
 
 #[repr(C)]
@@ -443,6 +445,7 @@ impl GpuState {
     pub fn update(
         &self,
         dt: f32,
+        window_rect: Option<Rect>,
         device: &wgpu::Device,
         queue: &wgpu::Queue,
         gpu_attractors: &[GpuAttractor],
@@ -460,7 +463,23 @@ impl GpuState {
             let chunk_size = remaining.min(max_invocations);
             let num_workgroups = chunk_size.div_ceil(WORK_GROUP_SIZE);
 
-            let params = DispatchParams { offset, dt };
+            let window = if let Some(rect) = window_rect {
+                [rect.left(), rect.right(), rect.bottom(), rect.top()]
+            } else {
+                [
+                    f32::INFINITY,
+                    f32::NEG_INFINITY,
+                    f32::INFINITY,
+                    f32::NEG_INFINITY,
+                ]
+            };
+
+            let params = DispatchParams {
+                offset,
+                dt,
+                _padding: [0.0, 0.0],
+                window,
+            };
             queue.write_buffer(&self.dispatch_buffer, 0, bytemuck::bytes_of(&params));
 
             let mut compute_encoder =

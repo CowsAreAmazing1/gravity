@@ -24,6 +24,7 @@ where
     M: OrdinaryNumericalMethod<f64, Vec<f64>> + MethodFn<M>,
 {
     /// General, non-GPU update function for the system state using any specified numerical method.
+    #[allow(clippy::too_many_arguments)]
     fn update(
         state: &State,
         ode: &GravitationalODE,
@@ -31,6 +32,7 @@ where
         sub_steps: u32,
         device: Option<&Device>,
         queue: Option<&Queue>,
+        _window_rect: Option<Rect>,
         gpu_state: Option<&mut GpuState>,
     ) -> Vec<(Vec2, Vec2)> {
         let sub_dt = dt / sub_steps as f64;

@@ -28,6 +28,7 @@ impl AllowedMethod<VV> for VV {
         sub_steps: u32,
         device: Option<&nannou::wgpu::Device>,
         queue: Option<&nannou::wgpu::Queue>,
+        window_rect: Option<nannou::geom::Rect>,
         mut gpu_state: Option<&mut GpuState>,
     ) -> Vec<(Vec2, Vec2)> {
         let sub_dt = dt / sub_steps as f64;
@@ -65,7 +66,7 @@ impl AllowedMethod<VV> for VV {
                         })
                         .collect::<Vec<GpuAttractor>>();
 
-                    gpu_state.update(sub_dt as f32, device, queue, &attractors);
+                    gpu_state.update(sub_dt as f32, window_rect, device, queue, &attractors);
                 }
             }
         }

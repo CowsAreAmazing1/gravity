@@ -70,6 +70,7 @@ fn simulate_dust(pos_mul: f32, vel_mul: f32, planet_orbit_radius: f32) -> SimRes
         100_000,
         None,
         None,
+        None,
     );
 
     let new_dust = system

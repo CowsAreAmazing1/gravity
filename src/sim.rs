@@ -250,6 +250,7 @@ where
         sub_steps: u32,
         device: Option<&Device>,
         queue: Option<&Queue>,
+        window_rect: Option<Rect>,
     ) {
         let ode = GravitationalODE::new(self.get_masses());
         let state = State::from_system(self);
@@ -262,6 +263,7 @@ where
             sub_steps,
             device,
             queue,
+            window_rect,
             self.gpu_state.as_mut(),
         );
 
@@ -274,6 +276,7 @@ where
     }
 
     /// Updates the system until condition is met or max steps reached
+    #[allow(clippy::too_many_arguments)]
     pub fn update_until(
         &mut self,
         mut condition: impl FnMut(&System<M>) -> bool,
@@ -282,10 +285,11 @@ where
         max_steps: u32,
         device: Option<&Device>,
         queue: Option<&Queue>,
+        window_rect: Option<Rect>,
     ) {
         let mut steps = 0;
         while !condition(self) && steps < max_steps {
-            self.update(dt, sub_steps, device, queue);
+            self.update(dt, sub_steps, device, queue, window_rect);
             steps += 1;
         }
     }

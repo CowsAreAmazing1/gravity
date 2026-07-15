@@ -47,9 +47,13 @@ fn update(app: &App, model: &mut Model, _update: Update) {
         let device = window.device();
         let queue = window.queue();
 
-        model
-            .system
-            .update(model.ih.dt, 10, Some(device), Some(queue));
+        model.system.update(
+            model.ih.dt,
+            10,
+            Some(device),
+            Some(queue),
+            Some(window.rect()),
+        );
     }
 }
 

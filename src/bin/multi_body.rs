@@ -37,7 +37,7 @@ fn model(app: &App) -> Model {
 }
 
 fn update(_app: &App, model: &mut Model, _update: Update) {
-    model.system.update(0.2, 5, None, None);
+    model.system.update(0.2, 5, None, None, None);
 }
 fn view(app: &App, model: &Model, frame: Frame) {
     let window = app.main_window();
