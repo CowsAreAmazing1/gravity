@@ -4,34 +4,6 @@ use nannou::prelude::*;
 const WORK_GROUP_SIZE: u32 = 256;
 
 #[repr(C)]
-#[derive(Clone, Copy, Pod, Zeroable, Debug)]
-pub struct QuadVertex {
-    pos: [f32; 2],
-}
-
-impl QuadVertex {
-    fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        use std::mem;
-        wgpu::VertexBufferLayout {
-            array_stride: mem::size_of::<QuadVertex>() as wgpu::BufferAddress,
-            step_mode: wgpu::VertexStepMode::Vertex,
-            attributes: &[wgpu::VertexAttribute {
-                offset: 0,
-                shader_location: 0, // Matches @location(1) in VertexInput
-                format: wgpu::VertexFormat::Float32x2,
-            }],
-        }
-    }
-}
-
-pub const QUAD_VERTICES: &[QuadVertex] = &[
-    QuadVertex { pos: [-0.5, -0.5] }, // Bottom-left
-    QuadVertex { pos: [0.5, -0.5] },  // Bottom-right
-    QuadVertex { pos: [-0.5, 0.5] },  // Top-left
-    QuadVertex { pos: [0.5, 0.5] },   // Top-right
-];
-
-#[repr(C)]
 #[derive(Default, Clone, Copy, Pod, Zeroable, Debug)]
 pub struct Uniforms {
     pub scale: f32,
@@ -119,58 +91,23 @@ impl GpuDust {
             velocity: [velocity.x, velocity.y],
         }
     }
+}
 
-    fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        use std::mem;
-        wgpu::VertexBufferLayout {
-            array_stride: mem::size_of::<GpuDust>() as wgpu::BufferAddress,
-            step_mode: wgpu::VertexStepMode::Instance,
-            attributes: &[wgpu::VertexAttribute {
-                offset: 0,
-                shader_location: 1, // @location(1) particle_pos
-                format: wgpu::VertexFormat::Float32x2,
-            }],
-        }
-    }
+pub(crate) struct DustChunk {
+    pub(crate) num_particles: u32,
+    pub(crate) compute_bind_group: wgpu::BindGroup,
+    pub(crate) render_bind_group: wgpu::BindGroup,
 }
 
 #[repr(C)]
-#[derive(Clone, Copy, Pod, Zeroable, Debug)]
-pub struct GpuColor {
-    value: f32,
-}
-
-impl GpuColor {
-    pub fn new(value: f32) -> Self {
-        Self { value }
-    }
-
-    fn desc<'a>() -> wgpu::VertexBufferLayout<'a> {
-        use std::mem;
-        wgpu::VertexBufferLayout {
-            array_stride: mem::size_of::<GpuColor>() as wgpu::BufferAddress,
-            step_mode: wgpu::VertexStepMode::Instance,
-            attributes: &[wgpu::VertexAttribute {
-                offset: 0,
-                shader_location: 2,
-                format: wgpu::VertexFormat::Float32,
-            }],
-        }
-    }
-}
-
 pub struct GpuState {
     compute_pipeline: wgpu::ComputePipeline,
     pub(crate) render_pipeline: wgpu::RenderPipeline,
     attractor_buffer: wgpu::Buffer,
-    pub(crate) dust_buffer: wgpu::Buffer,
-    pub(crate) color_buffer: wgpu::Buffer,
-    pub(crate) vertex_buffer: wgpu::Buffer,
     uniform_buffer: wgpu::Buffer,
     dispatch_buffer: wgpu::Buffer,
     attractor_bind_group: wgpu::BindGroup,
-    dust_bind_group: wgpu::BindGroup,
-    color_bind_group: wgpu::BindGroup,
+    pub(crate) dust_chunks: Vec<DustChunk>,
     pub(crate) uniform_bind_group: wgpu::BindGroup,
     dispatch_bind_group: wgpu::BindGroup,
 
@@ -182,30 +119,17 @@ impl GpuState {
         device: &wgpu::Device,
         attractors: &[GpuAttractor],
         dust_particles: &[GpuDust],
-        colors: &[GpuColor],
     ) -> Self {
+        let max_buffer_size = device.limits().max_buffer_size as usize;
+        let max_storage_binding_size = device.limits().max_storage_buffer_binding_size as usize;
+        let dust_stride = std::mem::size_of::<GpuDust>();
+        let chunk_byte_limit = max_buffer_size.min(max_storage_binding_size);
+        let max_particles_per_chunk = (chunk_byte_limit / dust_stride).max(1);
+
         let attractor_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
             label: Some("Attractor Buffer"),
             contents: bytemuck::cast_slice(attractors),
             usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::COPY_DST,
-        });
-
-        let dust_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Dust Buffer"),
-            contents: bytemuck::cast_slice(dust_particles),
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::VERTEX, // | wgpu::BufferUsages::COPY_DST,
-        });
-
-        let color_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Color Buffer"),
-            contents: bytemuck::cast_slice(colors),
-            usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::VERTEX,
-        });
-
-        let vertex_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Quad Vertex Buffer"),
-            contents: bytemuck::cast_slice(QUAD_VERTICES),
-            usage: wgpu::BufferUsages::VERTEX,
         });
 
         let uniform_buffer = device.create_buffer(&wgpu::BufferDescriptor {
@@ -262,38 +186,53 @@ impl GpuState {
                 label: Some("Dust Bind Group Layout"),
             });
 
-        let dust_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            layout: &dust_bind_group_layout,
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: dust_buffer.as_entire_binding(),
-            }],
-            label: Some("Dust Bind Group"),
-        });
-
-        let color_bind_group_layout =
+        let render_dust_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
                 entries: &[wgpu::BindGroupLayoutEntry {
                     binding: 0,
-                    visibility: wgpu::ShaderStages::COMPUTE,
+                    visibility: wgpu::ShaderStages::VERTEX,
                     ty: wgpu::BindingType::Buffer {
-                        ty: wgpu::BufferBindingType::Storage { read_only: false },
+                        ty: wgpu::BufferBindingType::Storage { read_only: true },
                         has_dynamic_offset: false,
                         min_binding_size: None,
                     },
                     count: None,
                 }],
-                label: Some("Color Bind Group Layout"),
+                label: Some("Render Dust Bind Group Layout"),
             });
 
-        let color_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
-            layout: &color_bind_group_layout,
-            entries: &[wgpu::BindGroupEntry {
-                binding: 0,
-                resource: color_buffer.as_entire_binding(),
-            }],
-            label: Some("Dust Bind Group"),
-        });
+        let mut dust_chunks = Vec::new();
+        for chunk in dust_particles.chunks(max_particles_per_chunk) {
+            let chunk_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Dust Chunk Buffer"),
+                contents: bytemuck::cast_slice(chunk),
+                usage: wgpu::BufferUsages::STORAGE | wgpu::BufferUsages::VERTEX,
+            });
+
+            let compute_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                layout: &dust_bind_group_layout,
+                entries: &[wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: chunk_buffer.as_entire_binding(),
+                }],
+                label: Some("Dust Chunk Compute Bind Group"),
+            });
+
+            let render_bind_group = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                layout: &render_dust_bind_group_layout,
+                entries: &[wgpu::BindGroupEntry {
+                    binding: 0,
+                    resource: chunk_buffer.as_entire_binding(),
+                }],
+                label: Some("Dust Chunk Render Bind Group"),
+            });
+
+            dust_chunks.push(DustChunk {
+                num_particles: chunk.len() as u32,
+                compute_bind_group,
+                render_bind_group,
+            });
+        }
 
         let uniform_bind_group_layout =
             device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
@@ -360,7 +299,6 @@ impl GpuState {
                 label: Some("Compute Pipeline Layout"),
                 bind_group_layouts: &[
                     &dust_bind_group_layout,
-                    &color_bind_group_layout,
                     &attractor_bind_group_layout,
                     &dispatch_bind_group_layout,
                 ],
@@ -370,7 +308,7 @@ impl GpuState {
         let render_pipeline_layout =
             device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
                 label: Some("Render Pipeline Layout"),
-                bind_group_layouts: &[&uniform_bind_group_layout],
+                bind_group_layouts: &[&uniform_bind_group_layout, &render_dust_bind_group_layout],
                 push_constant_ranges: &[],
             });
 
@@ -388,22 +326,29 @@ impl GpuState {
             vertex: wgpu::VertexState {
                 module: &render_shader,
                 entry_point: "vs_main",
-                buffers: &[QuadVertex::desc(), GpuDust::desc(), GpuColor::desc()],
+                buffers: &[],
             },
             fragment: Some(wgpu::FragmentState {
                 module: &render_shader,
                 entry_point: "fs_main",
                 targets: &[Some(wgpu::ColorTargetState {
                     format: Frame::TEXTURE_FORMAT,
-                    blend: Some(wgpu::BlendState::REPLACE),
+                    blend: Some(wgpu::BlendState {
+                        color: wgpu::BlendComponent {
+                            src_factor: wgpu::BlendFactor::SrcAlpha,
+                            dst_factor: wgpu::BlendFactor::One,
+                            operation: wgpu::BlendOperation::Add,
+                        },
+                        alpha: wgpu::BlendComponent::REPLACE,
+                    }),
                     write_mask: wgpu::ColorWrites::ALL,
                 })],
             }),
             primitive: wgpu::PrimitiveState {
-                topology: wgpu::PrimitiveTopology::TriangleStrip,
+                topology: wgpu::PrimitiveTopology::PointList,
                 strip_index_format: None,
                 front_face: wgpu::FrontFace::Ccw,
-                cull_mode: Some(wgpu::Face::Back),
+                cull_mode: None,
                 polygon_mode: wgpu::PolygonMode::Fill,
                 unclipped_depth: false,
                 conservative: false,
@@ -421,14 +366,10 @@ impl GpuState {
             compute_pipeline,
             render_pipeline,
             attractor_buffer,
-            dust_buffer,
-            color_buffer,
-            vertex_buffer,
             uniform_buffer,
             dispatch_buffer,
             attractor_bind_group,
-            dust_bind_group,
-            color_bind_group,
+            dust_chunks,
             uniform_bind_group,
             dispatch_bind_group,
 
@@ -452,21 +393,14 @@ impl GpuState {
             0,
             bytemuck::cast_slice(gpu_attractors),
         );
+        let mut compute_encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+            label: Some("Compute Encoder"),
+        });
 
-        let max_invocations = WORK_GROUP_SIZE * 65535;
-        let mut offset = 0;
-        while offset < self.num_particles {
-            let remaining = self.num_particles - offset;
-            let chunk_size = remaining.min(max_invocations);
-            let num_workgroups = chunk_size.div_ceil(WORK_GROUP_SIZE);
-
-            let params = DispatchParams { offset, dt };
+        for chunk in &self.dust_chunks {
+            let num_workgroups = chunk.num_particles.div_ceil(WORK_GROUP_SIZE);
+            let params = DispatchParams { offset: 0, dt };
             queue.write_buffer(&self.dispatch_buffer, 0, bytemuck::bytes_of(&params));
-
-            let mut compute_encoder =
-                device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
-                    label: Some("Compute Encoder"),
-                });
 
             {
                 let mut compute_pass =
@@ -474,14 +408,13 @@ impl GpuState {
                         label: Some("Compute Pass"),
                     });
                 compute_pass.set_pipeline(&self.compute_pipeline);
-                compute_pass.set_bind_group(0, &self.dust_bind_group, &[]);
-                compute_pass.set_bind_group(1, &self.color_bind_group, &[]);
-                compute_pass.set_bind_group(2, &self.attractor_bind_group, &[]);
-                compute_pass.set_bind_group(3, &self.dispatch_bind_group, &[]);
+                compute_pass.set_bind_group(0, &chunk.compute_bind_group, &[]);
+                compute_pass.set_bind_group(1, &self.attractor_bind_group, &[]);
+                compute_pass.set_bind_group(2, &self.dispatch_bind_group, &[]);
                 compute_pass.dispatch_workgroups(num_workgroups, 1, 1);
             }
-            queue.submit(Some(compute_encoder.finish()));
-            offset += chunk_size;
         }
+
+        queue.submit(Some(compute_encoder.finish()));
     }
 }

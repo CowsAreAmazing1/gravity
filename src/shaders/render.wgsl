@@ -9,32 +9,30 @@ struct Uniforms {
 };
 @group(0) @binding(0) var<uniform> uniforms: Uniforms;
 
-struct VertexInput {
-    @location(0) quad_pos: vec2<f32>,
-    @location(1) particle_pos: vec2<f32>,
-    @location(2) in_color: f32,
+struct Particle {
+    pos: vec2<f32>,
+    vel: vec2<f32>,
 };
+
+@group(1) @binding(0) var<storage, read> particles: array<Particle>;
 
 struct VertexOutput {
     @builtin(position) position: vec4<f32>,
     @location(0) color: vec4<f32>,
 };
 
+struct FragmentInput {
+    @location(0) color: vec4<f32>,
+};
+
 @vertex
-fn vs_main(input: VertexInput) -> VertexOutput {
-    let particle_size = 0.5 / sqrt(uniforms.scale);
-    let world_pos = input.particle_pos + input.quad_pos * particle_size;
-
-    // Dragged position first
-    let translated_pos = world_pos - uniforms.camera_translation;
-
-    // second, rotation around ( rotation_center - camera_translation )
+fn vs_main(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
+    let particle = particles[vertex_index];
+    let translated_pos = particle.pos - uniforms.camera_translation;
     let rotation_center_translated = uniforms.rotation_center - uniforms.camera_translation;
     let pos_relative_to_center = translated_pos - rotation_center_translated;
     let rotated_pos = rotate2d(pos_relative_to_center, uniforms.rotation_angle);
     let final_pos = rotated_pos + rotation_center_translated;
-
-    // Lastly scale
     let camera_pos = final_pos * uniforms.scale;
 
     var ndc: vec2<f32>;
@@ -42,20 +40,15 @@ fn vs_main(input: VertexInput) -> VertexOutput {
 
     var output: VertexOutput;
     output.position = vec4<f32>(ndc, 0.0, 1.0);
-
-    output.color = vec4<f32>(input.in_color, 0.0, 0.0, 1.0);
+    let speed = length(particle.vel);
+    let hue = 0.3 * log(max(speed, 1e-6));
+    output.color = vec4<f32>(hsv_to_rgb(vec3<f32>(hue, 1.0, 1.0)), 0.1);
     return output;
 }
 
 @fragment
-fn fs_main(input: VertexOutput) -> @location(0) vec4<f32> {
-    let speed = length(input.color.xy);
-    let hue = 0.3 * log(speed);
-
-    let hsv = vec3<f32>(hue, 1.0, 1.0 - 0.0 * 0.5 * speed);
-    let rgb = hsv_to_rgb(hsv);
-
-    return vec4<f32>(rgb, 1.0);
+fn fs_main(input: FragmentInput) -> @location(0) vec4<f32> {
+    return input.color;
 }
 
 fn rotate2d(pos: vec2<f32>, angle: f32) -> vec2<f32> {

@@ -62,7 +62,7 @@ fn model(app: &App) -> Model {
                 .orbit(Vec2::ZERO, 800.0, false),
         );
 
-    system.include_setup_random(&setup, 8_000_000);
+    system.include_setup_random(&setup, 100_000_000);
     system.init_gpu(device);
 
     let ih = InteractionHandler::from_rect(&window.rect());

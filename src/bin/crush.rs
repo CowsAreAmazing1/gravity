@@ -18,14 +18,14 @@ fn model(app: &App) -> Model {
     let mut system = System::new();
 
     let num = 8;
-    let scale = 3.0;
+    let scale = 3.5;
     for i in 0..num {
         let t = map_range(i, 0, num, 0.0, TAU);
 
-        let pos: Vec2 = 300.0 * Vec2::from(t.sin_cos());
+        let pos: Vec2 = 250.0 * Vec2::from(t.sin_cos());
         let vel = -scale * pos.normalize();
         let mut attractor = Attractor::new(pos, vel, -10.0, 0.0);
-        attractor.set_orbit(Vec2::ZERO, 200.0, true);
+        attractor.set_orbit(Vec2::ZERO, 10.0, true);
         *attractor.velocity_mut() = attractor.velocity() + vel;
         system.add_attractor(attractor);
     }
@@ -33,10 +33,10 @@ fn model(app: &App) -> Model {
     let mut setup = Setup::new();
     setup.add(Disc::new().radius(100.0));
 
-    system.include_setup_random(&setup, 8_000_000);
+    system.include_setup_random(&setup, 20_000_000);
     system.init_gpu(device);
 
-    let ih = InteractionHandler::from_rect(&app.window_rect());
+    let ih = InteractionHandler::from_rect(&app.window_rect()).set_dt(0.3);
 
     Model { system, ih }
 }
@@ -49,7 +49,7 @@ fn update(app: &App, model: &mut Model, _update: Update) {
 
         model
             .system
-            .update(model.ih.dt, 10, Some(device), Some(queue));
+            .update(model.ih.dt, 5, Some(device), Some(queue));
     }
 }
 

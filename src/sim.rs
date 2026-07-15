@@ -7,7 +7,7 @@ use nannou::{
 
 use crate::{
     diff_eq::{AllowedMethod, GravitationalODE, State},
-    gpu, GpuAttractor, GpuColor, GpuDust, GpuState,
+    GpuAttractor, GpuDust, GpuState,
 };
 
 pub trait Body {
@@ -212,23 +212,18 @@ where
     }
 
     pub fn include_setup(&mut self, setup: &crate::scene_layout::Setup, num_dust: u32) {
-        self.dust = Vec::with_capacity(std::mem::size_of::<Dust>() * num_dust as usize);
+        self.dust = Vec::with_capacity(num_dust as usize);
         setup.build(num_dust, &mut self.dust);
     }
     pub fn include_setup_random(&mut self, setup: &crate::scene_layout::Setup, num_dust: u32) {
-        self.dust = Vec::with_capacity(std::mem::size_of::<Dust>() * num_dust as usize);
+        self.dust = Vec::with_capacity(num_dust as usize);
         setup.build_random(num_dust, &mut self.dust);
     }
 
     pub fn init_gpu(&mut self, device: &Device) {
         let attractors = self.get_attractors_gpu();
         let dust_particles = self.get_dust_gpu();
-        let colors = dust_particles
-            .iter()
-            .enumerate()
-            .map(|(i, _)| GpuColor::new(i as f32 / dust_particles.len() as f32 * 255.0))
-            .collect::<Vec<GpuColor>>();
-        let gpu_state = GpuState::new(device, &attractors, &dust_particles, &colors);
+        let gpu_state = GpuState::new(device, &attractors, &dust_particles);
         self.gpu_state = Some(gpu_state);
     }
 
@@ -400,14 +395,10 @@ where
                 render_pass.set_pipeline(&gpu_state.render_pipeline);
 
                 render_pass.set_bind_group(0, &gpu_state.uniform_bind_group, &[]);
-                render_pass.set_vertex_buffer(0, gpu_state.vertex_buffer.slice(..));
-                render_pass.set_vertex_buffer(1, gpu_state.dust_buffer.slice(..));
-                render_pass.set_vertex_buffer(2, gpu_state.color_buffer.slice(..));
-
-                render_pass.draw(
-                    0..gpu::QUAD_VERTICES.len() as u32,
-                    0..gpu_state.num_particles,
-                );
+                for chunk in &gpu_state.dust_chunks {
+                    render_pass.set_bind_group(1, &chunk.render_bind_group, &[]);
+                    render_pass.draw(0..chunk.num_particles, 0..1);
+                }
             }
             queue.submit(Some(encoder.finish()));
         }
