@@ -1,5 +1,6 @@
 use main_gravity::prelude::*;
 use nannou::prelude::*;
+use text_io::read;
 
 struct Model {
     system: System<VV>,
@@ -62,7 +63,8 @@ fn model(app: &App) -> Model {
                 .orbit(Vec2::ZERO, 800.0, false),
         );
 
-    system.include_setup_random(&setup, 100_000_000);
+    let input: u32 = read!("{}\r");
+    system.include_setup_random(&setup, input);
     system.init_gpu(device);
 
     let ih = InteractionHandler::from_rect(&window.rect());

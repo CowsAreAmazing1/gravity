@@ -1509,6 +1509,7 @@ dependencies = [
  "nannou_egui",
  "plotters",
  "quill",
+ "text_io",
  "voronator",
 ]
 
@@ -2905,6 +2906,12 @@ checksum = "06794f8f6c5c898b3275aebefa6b8a1cb24cd2c6c79397ab15774837a0bc5755"
 dependencies = [
  "winapi-util",
 ]
+
+[[package]]
+name = "text_io"
+version = "0.1.13"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4d8d3ca3b06292094e03841d8995e910712d2a10b5869c8f9725385b29761115"
 
 [[package]]
 name = "thiserror"
