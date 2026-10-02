@@ -1,7 +1,8 @@
 [package]
 name = "main_gravity"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
+default-run = "main"
 
 [dependencies]
 bytemuck = "1.25.0"

@@ -1,6 +1,6 @@
 use differential_equations::methods::{DormandPrince, ExplicitRungeKutta, Fixed, Ordinary};
 
-use crate::diff_eq::{AllowedMethod, MethodFn};
+use crate::sim::diff_eq::{AllowedMethod, MethodFn};
 
 // Euler
 pub type EULER = ExplicitRungeKutta<Ordinary, Fixed, f64, Vec<f64>, 1, 1, 1>;

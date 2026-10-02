@@ -1,11 +1,11 @@
 use nannou::{
+    App, Draw, Event,
     event::{Key, MouseButton, MouseScrollDelta, WindowEvent},
     geom::Rect,
-    glam::{vec2, Vec2},
-    App, Draw, Event,
+    glam::{Vec2, vec2},
 };
 
-use crate::Uniforms;
+use crate::sim::gpu::Uniforms;
 
 pub fn dvec2_to_vec2(val: nannou::geom::DVec2) -> Vec2 {
     vec2(val.x as f32, val.y as f32)
@@ -76,7 +76,7 @@ impl InteractionHandler {
     }
 
     /// Transforms the draw context based on the current interaction state (scale, translation, rotation).
-    pub fn draw(&self, draw: Draw) -> Draw {
+    pub fn draw(&self, draw: &Draw) -> Draw {
         let camera_translation = self.camera_translation.extend(0.0);
         let rotation_center = self.rotation_center.extend(0.0);
 

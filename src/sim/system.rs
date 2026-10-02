@@ -6,8 +6,8 @@ use nannou::{
 };
 
 use crate::{
-    diff_eq::{AllowedMethod, GravitationalODE, State},
-    GpuAttractor, GpuDust, GpuState,
+    sim::diff_eq::{AllowedMethod, GravitationalODE, State},
+    sim::gpu::{GpuAttractor, GpuDust, GpuState},
 };
 
 pub trait Body {
@@ -211,11 +211,11 @@ where
         self.dust.push(dust);
     }
 
-    pub fn include_setup(&mut self, setup: &crate::scene_layout::Setup, num_dust: u32) {
+    pub fn include_setup(&mut self, setup: &crate::sim::scene_layout::Setup, num_dust: u32) {
         self.dust = Vec::with_capacity(num_dust as usize);
         setup.build(num_dust, &mut self.dust);
     }
-    pub fn include_setup_random(&mut self, setup: &crate::scene_layout::Setup, num_dust: u32) {
+    pub fn include_setup_random(&mut self, setup: &crate::sim::scene_layout::Setup, num_dust: u32) {
         self.dust = Vec::with_capacity(num_dust as usize);
         setup.build_random(num_dust, &mut self.dust);
     }
@@ -366,7 +366,7 @@ where
         device: &Device,
         queue: &Queue,
         texture_view: &wgpu::TextureView,
-        scale: f32, // figure out how to sync gpu scale and draw zooming
+        scale: f32,
     ) {
         for body in self.get_attractors() {
             body.draw(draw, scale);

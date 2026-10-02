@@ -1,6 +1,6 @@
 use nannou::{geom::Range, prelude::*};
 
-use crate::{sim::Body, sim::Dust};
+use crate::{sim::system::Body, sim::system::Dust};
 
 // Main trait implemented by all scene builder elements. Allows filling with Dust particles.
 pub trait FillWithDust {

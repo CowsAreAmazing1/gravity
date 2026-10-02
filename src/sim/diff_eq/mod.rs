@@ -8,8 +8,8 @@ use nannou::{
 };
 
 use crate::{
-    sim::{Body, System},
-    GpuState,
+    sim::gpu::GpuState,
+    sim::system::{Body, System},
 };
 
 pub trait MethodFn<M>
