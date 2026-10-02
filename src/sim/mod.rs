@@ -1,18 +1,16 @@
 pub mod diff_eq;
 pub mod gpu;
-pub mod scene_layout;
 pub mod system;
 pub mod utils;
 
 pub mod prelude {
     pub use crate::{
         sim::diff_eq::{
+            AllowedMethod,
             gpuable::VV,
             not_gpuable::{DOP853, EULER, RK4, SSPRK3},
-            AllowedMethod,
         },
-        sim::scene_layout::{Disc, Quad, Setup, SetupObject},
-        sim::system::{sun_planet_binary_ccw, Attractor, Body, Dust, System},
+        sim::system::{Attractor, Body, Dust, System, sun_planet_binary_ccw},
         sim::utils::InteractionHandler,
     };
 

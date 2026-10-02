@@ -2,8 +2,8 @@ use nannou::prelude::*;
 
 use crate::{
     prelude::SimState,
+    scene::{scene_layout::Setup, shapes::disc::Disc},
     sim::{
-        scene_layout::{Disc, Setup},
         system::{Attractor, Body, System},
         utils::InteractionHandler,
     },

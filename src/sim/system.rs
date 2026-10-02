@@ -211,11 +211,15 @@ where
         self.dust.push(dust);
     }
 
-    pub fn include_setup(&mut self, setup: &crate::sim::scene_layout::Setup, num_dust: u32) {
+    pub fn include_setup(&mut self, setup: &crate::scene::scene_layout::Setup, num_dust: u32) {
         self.dust = Vec::with_capacity(num_dust as usize);
         setup.build(num_dust, &mut self.dust);
     }
-    pub fn include_setup_random(&mut self, setup: &crate::sim::scene_layout::Setup, num_dust: u32) {
+    pub fn include_setup_random(
+        &mut self,
+        setup: &crate::scene::scene_layout::Setup,
+        num_dust: u32,
+    ) {
         self.dust = Vec::with_capacity(num_dust as usize);
         setup.build_random(num_dust, &mut self.dust);
     }

@@ -1,3 +1,4 @@
+pub mod scene;
 pub mod sim;
 pub mod ui;
 
