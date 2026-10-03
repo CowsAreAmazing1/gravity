@@ -29,10 +29,18 @@ pub fn event(app: &App, model: &mut Model, event: Event) {
             simple: Some(event),
             ..
         } = event
-            && let WindowEvent::MousePressed(button) = event
-            && let Some(sim_state) = model.app_state.on_mouse_click(app, button)
         {
-            model.sim_state = Some(sim_state);
+            match event {
+                WindowEvent::MousePressed(button) => {
+                    if let Some(sim_state) = model.app_state.on_mouse_click(app, button) {
+                        model.sim_state = Some(sim_state);
+                    }
+                }
+                WindowEvent::KeyPressed(key) => {
+                    model.app_state.on_key_press(app, key);
+                }
+                _ => {}
+            }
         }
     }
 }

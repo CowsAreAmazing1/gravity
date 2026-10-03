@@ -45,7 +45,7 @@ fn view(app: &App, model: &Model, frame: Frame) {
     let queue = window.queue();
     let texture_view = frame.texture_view();
 
-    let draw = model.ih.draw(app.draw());
+    let draw = model.ih.draw(&app.draw());
     model
         .system
         .draw(&draw, device, queue, texture_view, model.ih.scale);

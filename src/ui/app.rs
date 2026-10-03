@@ -1,3 +1,5 @@
+use std::path::Path;
+
 use nannou::prelude::*;
 
 use crate::{
@@ -13,12 +15,21 @@ enum GAppState {
 
 pub struct GApp {
     app_state: GAppState,
+
+    scene_idx: usize,
+    scenes: Vec<String>,
 }
 
 impl GApp {
     pub fn new() -> Self {
         GApp {
             app_state: GAppState::Menu,
+
+            scene_idx: 0,
+            scenes: std::fs::read_dir(SCENE_DATA_PATH)
+                .unwrap()
+                .map(|entry| entry.unwrap().file_name().to_string_lossy().to_string())
+                .collect(),
         }
     }
 
@@ -33,7 +44,10 @@ impl GApp {
 
                     let mut system = System::new();
 
-                    let file = std::fs::File::open("src/scene/scenes/crush.txt").unwrap();
+                    let file = std::fs::File::open(
+                        Path::new(SCENE_DATA_PATH).join(self.scenes[self.scene_idx].as_str()),
+                    )
+                    .unwrap();
                     let parse_setup: ParseSetup = yaml_serde::from_reader(file).unwrap();
                     parse_setup.build::<VV>(&mut system);
 
@@ -52,17 +66,26 @@ impl GApp {
         }
     }
 
+    pub fn on_key_press(&mut self, _app: &App, key: Key) {
+        match key {
+            Key::Left => {
+                self.scene_idx = (self.scene_idx + 1) % self.scenes.len();
+            }
+            Key::Right => {
+                self.scene_idx = (self.scene_idx - 1) % self.scenes.len();
+            }
+            _ => {}
+        }
+    }
+
     pub fn view(&self, draw: &Draw) {
         draw.background().color(Rgb::new(0.15, 0.15, 0.15));
-        draw.translate(vec3(0.0, -150.0, 0.0))
+        draw.translate(vec3(0.0, 250.0, 0.0))
             .text("System is not initialized")
             .font_size(50);
 
-        let paths = std::fs::read_dir(SCENE_DATA_PATH).unwrap();
-
-        for path in paths {
-            println!("Name: {}", path.unwrap().file_name().display())
-        }
+        draw.text(self.scenes[self.scene_idx].as_str())
+            .font_size(30);
     }
 }
 
