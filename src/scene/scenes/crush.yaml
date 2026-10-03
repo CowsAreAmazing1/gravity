@@ -1,0 +1,95 @@
+dust_count: 800000
+objects:
+- !Disc
+  self_ops:
+  - !Radius 100.0
+  dust_ops: []
+attractors:
+- position:
+  - 0.0
+  - 250.0
+  velocity:
+  - 0.2
+  - -3.5
+  mass: -10.0
+  color:
+    hue: 0.0
+    saturation: 1.0
+    value: 1.0
+- position:
+  - 176.77669
+  - 176.77669
+  velocity:
+  - -2.3334525
+  - -2.616295
+  mass: -10.0
+  color:
+    hue: 0.0
+    saturation: 1.0
+    value: 1.0
+- position:
+  - 250.0
+  - -0.000010927847
+  velocity:
+  - -3.5
+  - -0.19999985
+  mass: -10.0
+  color:
+    hue: 0.0
+    saturation: 1.0
+    value: 1.0
+- position:
+  - 176.77669
+  - -176.77669
+  velocity:
+  - -2.616295
+  - 2.3334525
+  mass: -10.0
+  color:
+    hue: 0.0
+    saturation: 1.0
+    value: 1.0
+- position:
+  - -0.000021855694
+  - -250.0
+  velocity:
+  - -0.19999969
+  - 3.5
+  mass: -10.0
+  color:
+    hue: 0.0
+    saturation: 1.0
+    value: 1.0
+- position:
+  - -176.77672
+  - -176.77666
+  velocity:
+  - 2.3334527
+  - 2.6162946
+  mass: -10.0
+  color:
+    hue: 0.0
+    saturation: 1.0
+    value: 1.0
+- position:
+  - -250.0
+  - 0.0000029812202
+  velocity:
+  - 3.5
+  - 0.19999996
+  mass: -10.0
+  color:
+    hue: 0.0
+    saturation: 1.0
+    value: 1.0
+- position:
+  - -176.77663
+  - 176.77675
+  velocity:
+  - 2.6162941
+  - -2.3334532
+  mass: -10.0
+  color:
+    hue: 0.0
+    saturation: 1.0
+    value: 1.0

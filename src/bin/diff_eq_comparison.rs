@@ -545,7 +545,7 @@ fn update(_app: &App, model: &mut Model, _update: Update) {
 }
 
 fn view(app: &App, model: &Model, frame: Frame) {
-    let draw = model.ih.draw(app.draw());
+    let draw = model.ih.draw(&app.draw());
     draw.background().color(BLACK);
 
     // Draw trail from System
