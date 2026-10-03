@@ -1,0 +1,64 @@
+dust_count: 800000
+objects:
+- !Disc
+  self_ops: []
+  dust_ops:
+  - !CenterOffset
+    - 200.0
+    - 0.0
+- !Disc
+  self_ops: []
+  dust_ops:
+  - !CenterOffset
+    - 100.0
+    - 0.0
+- !Disc
+  self_ops: []
+  dust_ops:
+  - !CenterOffset
+    - 0.0
+    - 0.0
+- !Disc
+  self_ops: []
+  dust_ops:
+  - !CenterOffset
+    - -100.0
+    - 0.0
+- !Disc
+  self_ops: []
+  dust_ops:
+  - !CenterOffset
+    - -200.0
+    - 0.0
+- !Disc
+  self_ops:
+  - !InnerRadius 10.0
+  - !OuterRadius 20.0
+  dust_ops:
+  - !CenterOffset
+    - -250.0
+    - 0.0
+  - !VelocityOffset
+    - 30.0
+    - 0.1
+  - !VelocityScale 0.5
+  - !Orbit
+    - - -250.0
+      - 0.0
+    - 300.0
+    - true
+- !Quad
+  self_ops:
+  - !Width 100.0
+  - !Height 5.0
+  dust_ops:
+  - !RotateAround
+    - - 0.0
+      - 0.0
+    - 1.0
+  - !CenterOffset
+    - -150.0
+    - 0.0
+  - !VelocityOffset
+    - -30.0
+    - 0.0

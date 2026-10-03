@@ -12,7 +12,9 @@ nannou = "0.19.0"
 nannou_egui = "0.19.0"
 plotters = "0.3.7"
 quill = { version = "0.2.0", features = ["png"] }
+serde = "1.0.229"
 voronator = "0.2.1"
+yaml_serde = "0.10.7"
 
 [patch.crates-io]
 differential-equations = { git = "https://github.com/CowsAreAmazing1/differential-equations.git" }

@@ -1,7 +1,7 @@
 pub mod gpuable;
 pub mod not_gpuable;
 
-use differential_equations::ode::{OrdinaryNumericalMethod, ODE};
+use differential_equations::ode::{ODE, OrdinaryNumericalMethod};
 use nannou::{
     prelude::*,
     wgpu::{Device, Queue},

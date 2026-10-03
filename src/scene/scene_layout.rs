@@ -1,4 +1,5 @@
 use nannou::prelude::*;
+use serde::{Deserialize, Serialize};
 
 use crate::{
     scene::shapes::{disc::Disc, quad::Quad},
@@ -99,6 +100,16 @@ impl Default for Setup {
     }
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+pub enum CreationOperation {
+    CenterOffset(Vec2),
+    VelocityOffset(Vec2),
+    // RadialVelocity(f32),
+    VelocityScale(f32),
+    Orbit(Vec2, f32, bool),  // (orbit center, mass, clockwise?)
+    RotateAround(Vec2, f32), // (center, angle)
+}
+
 pub trait SetupObject {
     /// Return an updated builder with the new operation.
     fn add_operation(self, op: CreationOperation) -> Self
@@ -164,16 +175,6 @@ pub trait SetupObject {
     {
         self.add_operation(CreationOperation::RotateAround(center, angle))
     }
-}
-
-#[derive(Debug)]
-pub enum CreationOperation {
-    CenterOffset(Vec2),
-    VelocityOffset(Vec2),
-    // RadialVelocity(f32),
-    VelocityScale(f32),
-    Orbit(Vec2, f32, bool),  // (orbit center, mass, clockwise?)
-    RotateAround(Vec2, f32), // (center, angle)
 }
 
 // pub fn compute_l1_point(_g: f64, M: f64, m: f64, R: f64) -> f64 {

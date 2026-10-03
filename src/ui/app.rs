@@ -2,11 +2,8 @@ use nannou::prelude::*;
 
 use crate::{
     prelude::SimState,
-    scene::{scene_layout::Setup, shapes::disc::Disc},
-    sim::{
-        system::{Attractor, Body, System},
-        utils::InteractionHandler,
-    },
+    scene::parse::ParseSetup,
+    sim::{diff_eq::gpuable::VV, system::System, utils::InteractionHandler},
 };
 
 enum GAppState {
@@ -36,23 +33,23 @@ impl GApp {
 
                     let mut system = System::new();
 
-                    let num = 8;
-                    let scale = 3.5;
-                    for i in 0..num {
-                        let t = map_range(i, 0, num, 0.0, TAU);
+                    let file = std::fs::File::open("test.txt").unwrap();
+                    let parse_setup: ParseSetup = yaml_serde::from_reader(file).unwrap();
+                    parse_setup.build::<VV>(&mut system);
 
-                        let pos: Vec2 = 250.0 * Vec2::from(t.sin_cos());
-                        let vel = -scale * pos.normalize();
-                        let mut attractor = Attractor::new(pos, vel, -10.0, 0.0);
-                        attractor.set_orbit(Vec2::ZERO, 10.0, true);
-                        *attractor.velocity_mut() = attractor.velocity() + vel;
-                        system.add_attractor(attractor);
-                    }
+                    // let num = 8;
+                    // let scale = 3.5;
+                    // for i in 0..num {
+                    //     let t = map_range(i, 0, num, 0.0, TAU);
 
-                    let mut setup = Setup::new();
-                    setup.add(Disc::new().radius(100.0));
+                    //     let pos: Vec2 = 250.0 * Vec2::from(t.sin_cos());
+                    //     let vel = -scale * pos.normalize();
+                    //     let mut attractor = Attractor::new(pos, vel, -10.0, 0.0);
+                    //     attractor.set_orbit(Vec2::ZERO, 10.0, true);
+                    //     *attractor.velocity_mut() = attractor.velocity() + vel;
+                    //     system.add_attractor(attractor);
+                    // }
 
-                    system.include_setup_random(&setup, 20_000_000);
                     system.init_gpu(device);
 
                     let ih = InteractionHandler::from_rect(&app.window_rect()).set_dt(0.3);
