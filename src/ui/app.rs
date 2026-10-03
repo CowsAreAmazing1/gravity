@@ -2,7 +2,7 @@ use nannou::prelude::*;
 
 use crate::{
     prelude::SimState,
-    scene::parse::setup::ParseSetup,
+    scene::{SCENE_DATA_PATH, parse::setup::ParseSetup},
     sim::{diff_eq::gpuable::VV, system::System, utils::InteractionHandler},
 };
 
@@ -33,7 +33,7 @@ impl GApp {
 
                     let mut system = System::new();
 
-                    let file = std::fs::File::open("test.txt").unwrap();
+                    let file = std::fs::File::open("src/scene/scenes/crush.txt").unwrap();
                     let parse_setup: ParseSetup = yaml_serde::from_reader(file).unwrap();
                     parse_setup.build::<VV>(&mut system);
 
@@ -49,6 +49,19 @@ impl GApp {
                 }
             }
             GAppState::Running => None,
+        }
+    }
+
+    pub fn view(&self, draw: &Draw) {
+        draw.background().color(Rgb::new(0.15, 0.15, 0.15));
+        draw.translate(vec3(0.0, -150.0, 0.0))
+            .text("System is not initialized")
+            .font_size(50);
+
+        let paths = std::fs::read_dir(SCENE_DATA_PATH).unwrap();
+
+        for path in paths {
+            println!("Name: {}", path.unwrap().file_name().display())
         }
     }
 }

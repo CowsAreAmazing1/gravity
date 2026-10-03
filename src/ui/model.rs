@@ -55,25 +55,9 @@ fn view(app: &App, model: &Model, frame: Frame) {
     let draw = app.draw();
 
     if let Some(sim_state) = &model.sim_state {
-        let window = app.main_window();
-        let device = window.device();
-        let queue = window.queue();
-        let texture_view = frame.texture_view();
-
-        if let Some(gpu_state) = &sim_state.system.gpu_state {
-            let uniform = sim_state.ih.uniform();
-            gpu_state.update_uniforms(queue, &uniform);
-        }
-
-        let draw = sim_state.ih.draw(&draw);
-        sim_state
-            .system
-            .draw(&draw, device, queue, texture_view, sim_state.ih.scale);
+        sim_state.view(app, &frame, &draw);
     } else {
-        draw.background().color(Rgb::new(0.15, 0.15, 0.15));
-        draw.translate(vec3(0.0, -150.0, 0.0))
-            .text("System is not initialized")
-            .font_size(50);
+        model.app_state.view(&draw);
     }
 
     draw.to_frame(app, &frame).unwrap();

@@ -1,22 +1,6 @@
+use main_gravity::{scene::parse::prelude::*, sim::prelude::*};
+use nannou::prelude::*;
 use std::{f32::consts::TAU, fs::File};
-
-use main_gravity::{
-    scene::{
-        parse::{
-            setup::ParseSetup,
-            shapes::{
-                disc::{self, ParseDisc},
-                quad::{self, ParseQuad},
-            },
-        },
-        scene_layout::CreationOperation,
-    },
-    sim::system::{Attractor, Body},
-};
-use nannou::{
-    glam::{Vec2, vec2},
-    math::map_range,
-};
 
 fn main() {
     let num = 8;
@@ -34,62 +18,12 @@ fn main() {
         })
         .collect::<Vec<_>>();
 
-    let scene_objects = vec![
-        ParseDisc::new(
-            vec![],
-            vec![CreationOperation::CenterOffset(vec2(200.0, 0.0))],
-        )
-        .into(),
-        ParseDisc::new(
-            vec![],
-            vec![CreationOperation::CenterOffset(vec2(100.0, 0.0))],
-        )
-        .into(),
-        ParseDisc::new(
-            vec![],
-            vec![CreationOperation::CenterOffset(vec2(0.0, 0.0))],
-        )
-        .into(),
-        ParseDisc::new(
-            vec![],
-            vec![CreationOperation::CenterOffset(vec2(-100.0, 0.0))],
-        )
-        .into(),
-        ParseDisc::new(
-            vec![],
-            vec![CreationOperation::CenterOffset(vec2(-200.0, 0.0))],
-        )
-        .into(),
-        ParseDisc::new(
-            vec![
-                disc::SelfOperation::InnerRadius(10.0),
-                disc::SelfOperation::OuterRadius(20.0),
-            ],
-            vec![
-                CreationOperation::CenterOffset(vec2(-250.0, 0.0)),
-                CreationOperation::VelocityOffset(vec2(30.0, 0.1)),
-                CreationOperation::VelocityScale(0.5),
-                CreationOperation::Orbit(vec2(-250.0, 0.0), 300.0, true),
-            ],
-        )
-        .into(),
-        ParseQuad::new(
-            vec![
-                quad::SelfOperation::Width(100.0),
-                quad::SelfOperation::Height(5.0),
-            ],
-            vec![
-                CreationOperation::RotateAround(Vec2::ZERO, 1.0),
-                CreationOperation::CenterOffset(vec2(-150.0, 0.0)),
-                CreationOperation::VelocityOffset(vec2(-30.0, 0.0)),
-            ],
-        )
-        .into(),
-    ];
+    let scene_objects =
+        vec![ParseDisc::new(vec![disc::SelfOperation::Radius(100.0)], vec![]).into()];
 
     let parse_setup = ParseSetup::new(800_000, scene_objects, attractors);
 
-    let file = File::create("test.txt").unwrap();
+    let file = File::create("src/scene/scenes/crush.txt").unwrap();
     yaml_serde::to_writer(file, &parse_setup).unwrap();
 
     // let deserialized_point: Point = yaml_serde::from_str(&yaml)?;

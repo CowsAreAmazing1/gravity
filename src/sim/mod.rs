@@ -4,6 +4,8 @@ pub mod system;
 pub mod utils;
 
 pub mod prelude {
+    use nannou::{App, Draw, Frame};
+
     pub use crate::{
         sim::diff_eq::{
             AllowedMethod,
@@ -17,6 +19,24 @@ pub mod prelude {
     pub struct SimState {
         pub system: System<VV>,
         pub ih: InteractionHandler,
+    }
+
+    impl SimState {
+        pub fn view(&self, app: &App, frame: &Frame, draw: &Draw) {
+            let window = app.main_window();
+            let device = window.device();
+            let queue = window.queue();
+            let texture_view = frame.texture_view();
+
+            if let Some(gpu_state) = &self.system.gpu_state {
+                let uniform = self.ih.uniform();
+                gpu_state.update_uniforms(queue, &uniform);
+            }
+
+            let draw = self.ih.draw(draw);
+            self.system
+                .draw(&draw, device, queue, texture_view, self.ih.scale);
+        }
     }
 
     // pub fn model(app: &App) -> Model {
