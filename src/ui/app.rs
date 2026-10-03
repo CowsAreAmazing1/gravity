@@ -69,10 +69,10 @@ impl GApp {
     pub fn on_key_press(&mut self, _app: &App, key: Key) {
         match key {
             Key::Left => {
-                self.scene_idx = (self.scene_idx + 1) % self.scenes.len();
+                self.scene_idx = (self.scene_idx - 1) % self.scenes.len();
             }
             Key::Right => {
-                self.scene_idx = (self.scene_idx - 1) % self.scenes.len();
+                self.scene_idx = (self.scene_idx + 1) % self.scenes.len();
             }
             _ => {}
         }
@@ -81,11 +81,42 @@ impl GApp {
     pub fn view(&self, draw: &Draw) {
         draw.background().color(Rgb::new(0.15, 0.15, 0.15));
         draw.translate(vec3(0.0, 250.0, 0.0))
-            .text("System is not initialized")
-            .font_size(50);
+            .text("Pick a scene")
+            .font_size(50)
+            .no_line_wrap();
 
         draw.text(self.scenes[self.scene_idx].as_str())
-            .font_size(30);
+            .font_size(50)
+            .no_line_wrap();
+
+        draw.translate(vec3(0.0, -100.0, 0.0))
+            .text("Press left/right to change scene")
+            .font_size(20);
+
+        draw.translate(vec3(0.0, -250.0, 0.0))
+            .text("Click to start the simulation")
+            .font_size(25);
+
+        draw.translate(vec3(-350.0, 300.0, 0.0))
+            .text("Space to play/pause")
+            .font_size(20)
+            .no_line_wrap();
+        draw.translate(vec3(-350.0, 260.0, 0.0))
+            .text("Mouse drag to move the camera")
+            .font_size(20)
+            .no_line_wrap();
+        draw.translate(vec3(-350.0, 220.0, 0.0))
+            .text("Scroll to zoom in/out")
+            .font_size(20)
+            .no_line_wrap();
+        draw.translate(vec3(-350.0, 180.0, 0.0))
+            .text("Shift + scroll to slow down/speed up time")
+            .font_size(20)
+            .no_line_wrap();
+        draw.translate(vec3(-350.0, 140.0, 0.0))
+            .text("T to reverse time")
+            .font_size(20)
+            .no_line_wrap();
     }
 }
 
