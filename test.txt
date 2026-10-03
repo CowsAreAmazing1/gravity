@@ -1,4 +1,4 @@
-dust_count: 800000
+dust_count: 8000000
 objects:
 - !Disc
   self_ops: []

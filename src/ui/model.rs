@@ -69,18 +69,12 @@ fn view(app: &App, model: &Model, frame: Frame) {
         sim_state
             .system
             .draw(&draw, device, queue, texture_view, sim_state.ih.scale);
+    } else {
+        draw.background().color(Rgb::new(0.15, 0.15, 0.15));
+        draw.translate(vec3(0.0, -150.0, 0.0))
+            .text("System is not initialized")
+            .font_size(50);
     }
 
-    draw.background().color(BLACK);
-    draw.translate(vec3(0.0, 150.0, 0.0))
-        .text("waow")
-        .font_size(50);
-    draw.translate(vec3(0.0, -150.0, 0.0))
-        .text(if model.sim_state.is_some() {
-            "System is initialized"
-        } else {
-            "System is not initialized"
-        })
-        .font_size(50);
     draw.to_frame(app, &frame).unwrap();
 }
