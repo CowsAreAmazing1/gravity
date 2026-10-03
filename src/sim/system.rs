@@ -4,6 +4,7 @@ use nannou::{
     prelude::*,
     wgpu::{Device, Queue},
 };
+use serde::{Deserialize, Serialize};
 
 use crate::{
     sim::diff_eq::{AllowedMethod, GravitationalODE, State},
@@ -27,7 +28,7 @@ pub trait Body {
     }
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Serialize, Deserialize)]
 pub struct Attractor {
     position: Vec2,
     velocity: Vec2,

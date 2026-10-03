@@ -2,7 +2,7 @@ use nannou::prelude::*;
 
 use crate::{
     prelude::SimState,
-    scene::parse::ParseSetup,
+    scene::parse::setup::ParseSetup,
     sim::{diff_eq::gpuable::VV, system::System, utils::InteractionHandler},
 };
 
@@ -36,19 +36,6 @@ impl GApp {
                     let file = std::fs::File::open("test.txt").unwrap();
                     let parse_setup: ParseSetup = yaml_serde::from_reader(file).unwrap();
                     parse_setup.build::<VV>(&mut system);
-
-                    // let num = 8;
-                    // let scale = 3.5;
-                    // for i in 0..num {
-                    //     let t = map_range(i, 0, num, 0.0, TAU);
-
-                    //     let pos: Vec2 = 250.0 * Vec2::from(t.sin_cos());
-                    //     let vel = -scale * pos.normalize();
-                    //     let mut attractor = Attractor::new(pos, vel, -10.0, 0.0);
-                    //     attractor.set_orbit(Vec2::ZERO, 10.0, true);
-                    //     *attractor.velocity_mut() = attractor.velocity() + vel;
-                    //     system.add_attractor(attractor);
-                    // }
 
                     system.init_gpu(device);
 
